@@ -1,0 +1,414 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Spotify Overlay — style.css
+   Glassmorphism dark theme, overlay-ready (transparent background)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Design tokens ─────────────────────────────────────────────────── */
+:root {
+  --font:           'Inter', system-ui, sans-serif;
+
+  /* Colors */
+  --green:          #1DB954;
+  --green-glow:     rgba(29, 185, 84, 0.4);
+  --green-dim:      rgba(29, 185, 84, 0.15);
+
+  --surface:        rgba(12, 12, 14, 0.82);
+  --surface-border: rgba(255, 255, 255, 0.08);
+  --surface-hover:  rgba(255, 255, 255, 0.04);
+
+  --text-primary:   #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.55);
+  --text-dim:       rgba(255, 255, 255, 0.3);
+
+  /* Dimensions */
+  --album-size:     84px;
+  --radius:         18px;
+  --radius-sm:      10px;
+
+  /* Timing */
+  --ease:           cubic-bezier(0.4, 0, 0.2, 1);
+  --spring:         cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── Reset ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Body — MUST be transparent for OBS/TikTok Live ───────────────── */
+html, body {
+  background: transparent;
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+
+  /* Position overlay at bottom-left by default
+     Adjust this in TikTok Live Studio as needed */
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+/* ── Utility ───────────────────────────────────────────────────────── */
+.hidden { display: none !important; }
+
+/* ── Setup Banner ──────────────────────────────────────────────────── */
+.setup-banner {
+  background: rgba(255, 60, 60, 0.15);
+  border: 1px solid rgba(255, 60, 60, 0.35);
+  border-radius: var(--radius-sm);
+  padding: 12px 18px;
+  backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.setup-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ff8080;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.setup-content a {
+  color: #ff8080;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── Main Overlay Card ─────────────────────────────────────────────── */
+.overlay {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius);
+  padding: 14px 18px 14px 14px;
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.06) inset;
+
+  min-width: 320px;
+  max-width: 420px;
+
+  /* Enter animation */
+  animation: cardEnter 0.5s var(--spring) both;
+}
+
+@keyframes cardEnter {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+/* ── Album Art ─────────────────────────────────────────────────────── */
+.album-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: var(--album-size);
+  height: var(--album-size);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.album-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.album-art--current {
+  z-index: 2;
+}
+
+.album-art--prev {
+  z-index: 1;
+}
+
+/* Crossfade: when track changes, current fades in over prev */
+.album-art--current.fade-in {
+  animation: albumFadeIn 0.6s var(--ease) both;
+}
+.album-art--current.slide-in {
+  animation: albumSlideIn 0.5s var(--spring) both;
+}
+
+@keyframes albumFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes albumSlideIn {
+  from { opacity: 0; transform: translateX(28px) scale(0.92); }
+  to   { opacity: 1; transform: translateX(0)    scale(1); }
+}
+
+/* Dynamic glow behind album art */
+.album-glow {
+  position: absolute;
+  inset: -6px;
+  z-index: 0;
+  border-radius: 18px;
+  filter: blur(18px);
+  opacity: 0.55;
+  background: var(--green);
+  transition: background 1.2s ease;
+  pointer-events: none;
+}
+
+/* Explicit badge */
+.explicit-badge {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  z-index: 3;
+  background: rgba(0,0,0,0.6);
+  color: var(--text-secondary);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+/* ── Track Info ────────────────────────────────────────────────────── */
+.track-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Playing indicator bars */
+.playing-indicator {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 16px;
+}
+
+.playing-indicator .bar {
+  display: block;
+  width: 3px;
+  background: var(--green);
+  border-radius: 2px;
+  transform-origin: bottom;
+  animation: barBounce 1.1s ease-in-out infinite;
+}
+
+.playing-indicator .bar:nth-child(1) { height: 8px;  animation-delay: 0s; }
+.playing-indicator .bar:nth-child(2) { height: 14px; animation-delay: 0.18s; }
+.playing-indicator .bar:nth-child(3) { height: 10px; animation-delay: 0.36s; }
+.playing-indicator .bar:nth-child(4) { height: 6px;  animation-delay: 0.54s; }
+
+@keyframes barBounce {
+  0%, 100% { transform: scaleY(0.4); }
+  50%       { transform: scaleY(1); }
+}
+
+/* Paused state — freeze bars */
+.playing-indicator.paused .bar {
+  animation-play-state: paused;
+  transform: scaleY(0.4);
+}
+
+/* Track text */
+.track-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.song-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.2px;
+  line-height: 1.2;
+}
+
+/* Marquee scroll for very long titles */
+.song-title.marquee {
+  animation: marqueeScroll 8s linear infinite;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+@keyframes marqueeScroll {
+  0%   { transform: translateX(0); }
+  40%  { transform: translateX(var(--marquee-offset, -60px)); }
+  60%  { transform: translateX(var(--marquee-offset, -60px)); }
+  100% { transform: translateX(0); }
+}
+
+.artist-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Fade-in animation for text on track change */
+.track-text.animate-in {
+  animation: textFadeIn 0.45s var(--ease) both;
+}
+
+@keyframes textFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Progress Bar ──────────────────────────────────────────────────── */
+.progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.progress-track {
+  position: relative;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  overflow: visible;
+  cursor: default;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--green);
+  border-radius: 999px;
+  width: 0%;
+  transition: width 1s linear;
+  position: relative;
+  box-shadow: 0 0 8px var(--green-glow);
+}
+
+.progress-thumb {
+  position: absolute;
+  top: 50%;
+  left: 0%;
+  transform: translate(-50%, -50%) scale(0);
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border-radius: 50%;
+  transition: left 1s linear, transform 0.15s var(--ease);
+  box-shadow: 0 0 6px rgba(0,0,0,0.4);
+}
+
+.progress-track:hover .progress-thumb {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.progress-times {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.3px;
+}
+
+/* ── Next Track ────────────────────────────────────────────────────── */
+.next-track {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  background: var(--surface-hover);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--surface-border);
+  margin-top: 2px;
+}
+
+.next-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: var(--green);
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.next-art {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.next-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.next-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.next-artist {
+  font-size: 10px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Nothing Playing ───────────────────────────────────────────────── */
+.nothing-playing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius);
+  padding: 18px 28px;
+  backdrop-filter: blur(28px);
+  animation: cardEnter 0.4s var(--ease) both;
+}
+
+.np-icon {
+  font-size: 28px;
+  opacity: 0.4;
+}
+
+.np-text {
+  font-size: 13px;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+/* ── Responsive — keep overlay compact on small windows ───────────── */
+@media (max-width: 360px) {
+  .overlay { min-width: unset; max-width: 100%; }
+  :root { --album-size: 68px; }
+  .song-title { font-size: 13px; }
+}

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spotify Now Playing Overlay</title>
+  <meta name="description" content="Spotify Now Playing overlay for TikTok Live Studio and OBS" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── Setup Banner (shown only when not authenticated) ── -->
+  <div id="setup-banner" class="setup-banner hidden">
+    <div class="setup-content">
+      <span class="setup-icon">🔐</span>
+      <span class="setup-text">
+        Spotify not connected.
+        <a href="/auth/login" id="login-link">Click here to log in</a>
+      </span>
+    </div>
+  </div>
+
+  <!-- ── Main Overlay Card ─────────────────────────────── -->
+  <div id="overlay" class="overlay hidden">
+
+    <!-- Album art with crossfade layers -->
+    <div class="album-wrap" id="album-wrap">
+      <img id="album-art-prev" class="album-art album-art--prev" src="" alt="" aria-hidden="true" />
+      <img id="album-art"      class="album-art album-art--current" src="" alt="Album Art" />
+      <div class="album-glow" id="album-glow"></div>
+      <div class="explicit-badge hidden" id="explicit-badge">E</div>
+    </div>
+
+    <!-- Track info -->
+    <div class="track-info">
+      <div class="playing-indicator" id="playing-indicator">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+      </div>
+
+      <div class="track-text" id="track-text">
+        <p class="song-title" id="song-title">—</p>
+        <p class="artist-name" id="artist-name">—</p>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="progress-section">
+        <div class="progress-track" id="progress-track">
+          <div class="progress-fill" id="progress-fill"></div>
+          <div class="progress-thumb" id="progress-thumb"></div>
+        </div>
+        <div class="progress-times">
+          <span id="time-current">0:00</span>
+          <span id="time-total">0:00</span>
+        </div>
+      </div>
+
+      <!-- Next Song (optional — hidden by default, shown when queue data available) -->
+      <div class="next-track hidden" id="next-track">
+        <span class="next-label">UP NEXT</span>
+        <img class="next-art" id="next-art" src="" alt="" />
+        <div class="next-info">
+          <span class="next-title" id="next-title">—</span>
+          <span class="next-artist" id="next-artist">—</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Nothing Playing State ─────────────────────────── -->
+  <div id="nothing-playing" class="nothing-playing hidden">
+    <div class="np-icon">🎵</div>
+    <p class="np-text">Nothing playing</p>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
