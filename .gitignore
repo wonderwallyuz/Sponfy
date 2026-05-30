@@ -7,8 +7,8 @@ backend/node_modules/
 .env.*
 backend/.env
 backend/.env.*
-!*.env.example
-!backend/.env.example
+*.env.example
+backend/.env.example
 
 # Logs
 *.log
