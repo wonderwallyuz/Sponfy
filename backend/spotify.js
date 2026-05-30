@@ -14,6 +14,30 @@ async function spotifyGet(endpoint) {
   return response.data;
 }
 
+function isSameSpotifyItem(a, b) {
+  if (!a || !b) return false;
+  if (a.uri && b.uri) return a.uri === b.uri;
+  if (a.id && b.id) return a.id === b.id;
+  return false;
+}
+
+function mapQueueTrack(track) {
+  const images = track.album?.images || [];
+  const albumArt =
+    images.find((img) => img.width >= 200 && img.width <= 400)?.url ||
+    images[0]?.url ||
+    null;
+
+  return {
+    trackId: track.id,
+    song: track.name,
+    artist: track.artists.map((a) => a.name).join(', '),
+    album: track.album?.name || '',
+    albumArt,
+    duration: track.duration_ms,
+  };
+}
+
 // ── GET /api/current-song ─────────────────────────────────────────────────────
 router.get('/current-song', async (req, res) => {
   try {
@@ -63,28 +87,24 @@ router.get('/current-song', async (req, res) => {
 // Requires Spotify Premium
 router.get('/queue', async (req, res) => {
   try {
-    const data = await spotifyGet('/me/player/queue');
+    const queueData = await spotifyGet('/me/player/queue');
 
-    if (!data) {
+    if (!queueData) {
       return res.json({ queue: [] });
     }
 
-    // Return next 3 tracks from queue
-    const next = (data.queue || []).slice(0, 3).map((track) => {
-      const images = track.album?.images || [];
-      const albumArt =
-        images.find((img) => img.width >= 200 && img.width <= 400)?.url ||
-        images[0]?.url ||
-        null;
-      return {
-        trackId: track.id,
-        song: track.name,
-        artist: track.artists.map((a) => a.name).join(', '),
-        album: track.album?.name || '',
-        albumArt,
-        duration: track.duration_ms,
-      };
-    });
+    // Spotify returns the active item separately as `currently_playing`.
+    // If the first queued item duplicates it during device handoff/latency, drop only
+    // that leading duplicate so repeated songs later in the queue can still show.
+    let upcoming = queueData.queue || [];
+    while (upcoming.length && isSameSpotifyItem(upcoming[0], queueData.currently_playing)) {
+      upcoming = upcoming.slice(1);
+    }
+
+    const next = upcoming
+      .filter((track) => track?.type === 'track')
+      .slice(0, 3)
+      .map(mapQueueTrack);
 
     res.json({ queue: next });
   } catch (err) {

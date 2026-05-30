@@ -40,6 +40,7 @@ let durationMs        = 1;
 let isPlaying         = false;
 let lastPollTimestamp = 0;
 let rafId             = null;
+let queueRequestId    = 0;
 
 // ── Helpers ──────────────────────────────────────────────────────────
 function formatTime(ms) {
@@ -138,12 +139,17 @@ function transitionText(song, artist) {
 }
 
 // ── Queue fetch ───────────────────────────────────────────────────────
-async function updateQueue() {
+async function updateQueue(expectedTrackId = currentTrackId) {
   if (!QUEUE_ENABLED) return;
+  const requestId = ++queueRequestId;
   try {
     const res  = await fetch('/api/queue');
     if (!res.ok) { hide($nextTrack); return; }
     const data = await res.json();
+
+    // Ignore slower queue responses from a previous track/poll.
+    if (requestId !== queueRequestId || expectedTrackId !== currentTrackId) return;
+
     const next = data.queue?.[0];
     if (next) {
       $nextArt.src            = next.albumArt || '';
@@ -167,6 +173,7 @@ async function fetchCurrentSong() {
     if (res.status === 401) {
       hide($overlay);
       hide($nothingPlaying);
+      hide($nextTrack);
       show($setupBanner);
       stopProgressTick();
       return;
@@ -178,6 +185,7 @@ async function fetchCurrentSong() {
     // Nothing playing
     if (!data.isPlaying && !data.trackId) {
       hide($overlay);
+      hide($nextTrack);
       show($nothingPlaying);
       stopProgressTick();
       return;
@@ -192,6 +200,7 @@ async function fetchCurrentSong() {
     // ── Track changed → animate transition ──────────────────────────
     if (trackChanged) {
       currentTrackId = data.trackId;
+      hide($nextTrack);
 
       if (data.albumArt) transitionAlbumArt(data.albumArt);
       transitionText(data.song, data.artist);
@@ -205,15 +214,15 @@ async function fetchCurrentSong() {
       durationMs  = data.duration  || 1;
       $timeTotal.textContent = formatTime(durationMs);
       setProgress((progressMs / durationMs) * 100);
-
-      // Fetch queue for next-up section
-      updateQueue();
     } else {
       // Same track — update progress from server (corrects drift)
       progressMs = data.progress  || 0;
       durationMs = data.duration  || 1;
       $timeTotal.textContent = formatTime(durationMs);
     }
+
+    // Refresh Up Next every poll so Spotify queue changes do not leave stale text.
+    updateQueue(data.trackId);
 
     // ── Playback state ───────────────────────────────────────────────
     isPlaying = data.isPlaying;
