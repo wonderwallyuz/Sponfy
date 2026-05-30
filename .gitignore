@@ -4,7 +4,6 @@ backend/node_modules/
 
 # Environment secrets
 .env
-.env.*
 backend/.env
 
 
