@@ -8,7 +8,6 @@ backend/node_modules/
 backend/.env
 backend/.env.*
 *.env.example
-backend/.env.example
 
 # Logs
 *.log
