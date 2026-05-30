@@ -114,8 +114,9 @@ You should see:
 1. Open **TikTok Live Studio**
 2. In your scene, click **"+"** to add a source
 3. Choose **"Browser"** or **"Browser Source"**
-4. Set the URL to: `http://127.0.0.1:3000`
-5. Set width/height (recommended: **420 × 160**px)
+4. Set the URL to: `http://localhost.charlesproxy.com:3001`
+   > TikTok Live Studio may reject `localhost` or `127.0.0.1`, but `localhost.charlesproxy.com` points back to your own computer.
+5. Set width/height (recommended: **800 × 240**px)
 6. ✅ Enable **"Transparent background"** or **"Allow transparency"**
 7. Click OK — the overlay will appear in your scene!
 
